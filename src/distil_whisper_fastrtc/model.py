@@ -125,12 +125,23 @@ def get_stt_model(
 ) -> STTModel:
     """
     Helper function to easily get an STT model instance.
+    Warms up the model with a small array of zeros to improve first inference time.
 
     Args:
         model_name: Name of the model to use
         **kwargs: Additional arguments to pass to the model constructor
 
     Returns:
-        An STTModel instance
+        A warmed-up STTModel instance
     """
-    return DistilWhisperSTT(model=model_name, **kwargs)
+    model = DistilWhisperSTT(model=model_name, **kwargs)
+    
+    # Warm up the model with a small array of zeros
+    sample_rate = 16000  # Standard sample rate
+    duration = 0.1  # Very short duration for warm-up
+    zeros = np.zeros(int(sample_rate * duration), dtype=np.float32)
+    
+    # Run inference on zeros array to warm up the model
+    _ = model.stt((sample_rate, zeros))
+    
+    return model
