@@ -1,5 +1,8 @@
 from typing import Literal, Optional, Protocol, Tuple, Union
+from functools import lru_cache
 import os
+from pathlib import Path
+import click
 import torch
 import numpy as np
 from numpy.typing import NDArray
@@ -120,11 +123,12 @@ class DistilWhisperSTT:
 
 
 # For simpler imports
+@lru_cache
 def get_stt_model(
     model_name: str = "distil-whisper/distil-small.en", **kwargs
 ) -> STTModel:
     """
-    Helper function to easily get an STT model instance.
+    Helper function to easily get an STT model instance with warm-up.
 
     Args:
         model_name: Name of the model to use
@@ -133,4 +137,31 @@ def get_stt_model(
     Returns:
         An STTModel instance
     """
-    return DistilWhisperSTT(model=model_name, **kwargs)
+    # Set environment variable for tokenizers
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    
+    # Create the model
+    m = DistilWhisperSTT(model=model_name, **kwargs)
+    
+    # Warm up the model
+    curr_dir = Path(__file__).parent
+    
+    # Load test audio file for warm-up
+    import numpy as np
+    sample_rate = 16000
+    
+    # Try to load test_file.wav if it exists, otherwise use silence
+    test_file_path = curr_dir / "test_file.wav"
+    if test_file_path.exists():
+        # Simple load of the test file
+        # This is a placeholder - in a real implementation, you'd use a proper audio loading function
+        audio = np.zeros(sample_rate, dtype=np.float32)  # Placeholder
+    else:
+        # Create a simple silence array for warm-up
+        audio = np.zeros(sample_rate, dtype=np.float32)  # 1 second of silence
+    
+    print(click.style("INFO", fg="green") + ":\t  Warming up STT model.")
+    m.stt((sample_rate, audio))
+    print(click.style("INFO", fg="green") + ":\t  STT model warmed up.")
+    
+    return m
