@@ -3,11 +3,10 @@ from typing import List, Dict
 from distil_whisper_fastrtc import get_stt_model
 from dotenv import load_dotenv
 from fastrtc import (
-    #get_stt_model,
     get_tts_model,
     Stream,
     ReplyOnPause,
-    get_twilio_turn_credentials,
+    #get_twilio_turn_credentials,
 )
 from smolagents import CodeAgent, DuckDuckGoSearchTool, OpenAIServerModel
 
@@ -18,7 +17,9 @@ load_dotenv()
 curr_dir = Path(__file__).parent
 
 # Initialize models
-stt_model = get_stt_model()
+print("About to initialize STT model...", flush=True)
+stt_model = get_stt_model(verbose=True)  # Explicitly set verbose to True
+print("STT model initialized!", flush=True)
 tts_model = get_tts_model()
 
 # Conversation state to maintain history
@@ -93,7 +94,7 @@ stream = Stream(
         "icon_button_color": "rgb(255, 255, 255)",
         "title": "🧑‍💻The Coworking Agent",
     },
-    #rtc_configuration=get_twilio_turn_credentials(),
+    #rtc_configuration=get_twilio_turn_credentials(), # Add Twilio TURN credentials
 )
 
 if __name__ == "__main__":
