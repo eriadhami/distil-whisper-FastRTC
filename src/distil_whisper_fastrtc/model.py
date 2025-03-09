@@ -1,6 +1,7 @@
 from typing import Literal, Optional, Protocol, Tuple, Union
 from functools import lru_cache
 import os
+import sys
 from pathlib import Path
 import click
 import torch
@@ -125,13 +126,16 @@ class DistilWhisperSTT:
 # For simpler imports
 @lru_cache
 def get_stt_model(
-    model_name: str = "distil-whisper/distil-small.en", **kwargs
+    model_name: str = "distil-whisper/distil-small.en", 
+    verbose: bool = True,
+    **kwargs
 ) -> STTModel:
     """
     Helper function to easily get an STT model instance with warm-up.
 
     Args:
         model_name: Name of the model to use
+        verbose: Whether to print status messages
         **kwargs: Additional arguments to pass to the model constructor
 
     Returns:
@@ -140,8 +144,9 @@ def get_stt_model(
     # Set environment variable for tokenizers
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     
-    # Create the model
-    m = DistilWhisperSTT(model=model_name, **kwargs)
+    # Create the model - remove verbose from kwargs to avoid TypeError
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'verbose'}
+    m = DistilWhisperSTT(model=model_name, **filtered_kwargs)
     
     # Warm up the model
     curr_dir = Path(__file__).parent
@@ -160,8 +165,18 @@ def get_stt_model(
         # Create a simple silence array for warm-up
         audio = np.zeros(sample_rate, dtype=np.float32)  # 1 second of silence
     
-    print(click.style("INFO", fg="green") + ":\t  Warming up STT model.")
+    # Print only to stderr with green styling
+    if verbose:
+        msg = click.style("INFO", fg="green") + ":\t  Warming up STT model.\n"
+        sys.stderr.write(msg)
+        sys.stderr.flush()
+    
+    # Warm up the model
     m.stt((sample_rate, audio))
-    print(click.style("INFO", fg="green") + ":\t  STT model warmed up.")
+    
+    if verbose:
+        msg = click.style("INFO", fg="green") + ":\t  STT model warmed up.\n"
+        sys.stderr.write(msg)
+        sys.stderr.flush()
     
     return m
