@@ -1,45 +1,107 @@
 """
 Example showing how to integrate distil-whisper-fastrtc with FastRTC.
 
-This is a conceptual example and may need adjustments based on the
-actual FastRTC implementation details.
+This example demonstrates how the get_stt_model function from distil_whisper_fastrtc
+would be used with FastRTC, without requiring FastRTC to be installed.
 """
 
 import numpy as np
-from distil_whisper_fastrtc import DistilWhisperSTT
+from distil_whisper_fastrtc import get_stt_model
 
-def simulate_fastrtc_usage():
+def test_stt_model():
     """
-    Simulate how FastRTC would use our STT model.
-    
-    This is a conceptual example - in a real scenario, FastRTC would
-    instantiate and use our model according to its own architecture.
+    Test the get_stt_model function from distil_whisper_fastrtc.
     """
-    # Create our STT model
-    whisper_model = DistilWhisperSTT(
-        model="distil-whisper/distil-small.en",
-        device="cpu"
-    )
+    # Initialize the STT model using the get_stt_model function
+    print("Loading STT model...")
+    stt_model = get_stt_model(device="cpu")
     
-    # Simulate audio data that would come from FastRTC
-    # In reality, this would be captured from a microphone or received over WebRTC
+    # Create a simple audio sample for testing
     sample_rate = 16000
     duration = 2  # seconds
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    
-    # Create a simple audio signal (in real usage, this would be actual speech)
     audio_data = 0.5 * np.sin(2 * np.pi * 440 * t)
     
-    # FastRTC would pass the audio data to our model's stt method
-    transcription = whisper_model.stt((sample_rate, audio_data))
+    # Test the STT model
+    print("Transcribing audio...")
+    transcription = stt_model.stt((sample_rate, audio_data))
     
     print(f"Transcription: {transcription}")
+    print("Note: A sine wave may not produce meaningful transcription.")
     
-    # In FastRTC, this text would then be used for further processing,
-    # such as displaying in a UI or sending to other components
+    return stt_model
+
+def simulate_fastrtc_integration(stt_model):
+    """
+    Create a running FastRTC app that uses the STT model.
+    
+    This sets up a FastAPI server with FastRTC integration that can be
+    accessed through a web browser for testing the STT model.
+    """
+    print("\nCreating FastRTC integration app...")
+    
+    # Import FastRTC components
+    from fastrtc import Stream, StreamHandler
+    from fastapi import FastAPI
+    import uvicorn
+    
+    # Create a FastAPI app
+    app = FastAPI(title="Distil-Whisper FastRTC Demo")
+    
+    # Create a custom stream handler that transcribes audio
+    class TranscriptionHandler(StreamHandler):
+        def __init__(self, stt_model):
+            super().__init__()
+            self.stt_model = stt_model
+            
+        def receive(self, audio):
+            # Transcribe the audio using our STT model
+            text = self.stt_model.stt(audio)
+            print(f"Transcribed: {text}")
+            
+            # Send the transcription back to the client
+            self.send_message_sync(text)
+        
+        def copy(self):
+            # Create a copy of this handler
+            return TranscriptionHandler(self.stt_model)
+        
+        def emit(self):
+            # This method is required but not used in our case
+            pass
+    
+    # Set up a Stream with our custom handler
+    stream = Stream(
+        TranscriptionHandler(stt_model),
+        mode="send",  # Send mode for real-time communication
+        modality="audio",  # Audio modality for speech input
+    )
+    
+    # Mount the stream to the app
+    stream.mount(app)
+    
+    # Add a simple home page
+    @app.get("/")
+    def home():
+        return {
+            "message": "Distil-Whisper FastRTC Demo",
+            "instructions": "Open /stream in your browser to test the STT model"
+        }
+    
+    print("\nStarting FastAPI server...")
+    print("Open http://localhost:8000/stream in your browser to test the STT model")
+    print("Speak into your microphone to see live transcription")
+    print("Press Ctrl+C to stop the server")
+    
+    # Run the server
+    #uvicorn.run(app, host="0.0.0.0", port=8000)
+    stream.ui.launch(server_port=7860)
 
 if __name__ == "__main__":
-    print("Simulating FastRTC integration with distil-whisper-fastrtc")
-    simulate_fastrtc_usage()
-    print("Note: This is a simulation. In a real FastRTC application, the audio")
-    print("would come from a microphone or WebRTC connection.")
+    print("Testing distil-whisper-fastrtc integration with FastRTC")
+    
+    # First test the STT model
+    stt_model = test_stt_model()
+    
+    # Then run the FastRTC integration app
+    simulate_fastrtc_integration(stt_model)
