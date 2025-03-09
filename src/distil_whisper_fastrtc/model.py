@@ -131,12 +131,7 @@ def get_stt_model(
     **kwargs
 ) -> STTModel:
     """
-<<<<<<< HEAD
     Helper function to easily get an STT model instance with warm-up.
-=======
-    Helper function to easily get an STT model instance.
-    Warms up the model with a small array of zeros to improve first inference time.
->>>>>>> e108ba4e8fb28cfe0802e9a9b918416aa87bc247
 
     Args:
         model_name: Name of the model to use
@@ -146,7 +141,6 @@ def get_stt_model(
     Returns:
         A warmed-up STTModel instance
     """
-<<<<<<< HEAD
     # Set environment variable for tokenizers
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     
@@ -186,16 +180,3 @@ def get_stt_model(
         sys.stderr.flush()
     
     return m
-=======
-    model = DistilWhisperSTT(model=model_name, **kwargs)
-    
-    # Warm up the model with a small array of zeros
-    sample_rate = 16000  # Standard sample rate
-    duration = 0.1  # Very short duration for warm-up
-    zeros = np.zeros(int(sample_rate * duration), dtype=np.float32)
-    
-    # Run inference on zeros array to warm up the model
-    _ = model.stt((sample_rate, zeros))
-    
-    return model
->>>>>>> e108ba4e8fb28cfe0802e9a9b918416aa87bc247
