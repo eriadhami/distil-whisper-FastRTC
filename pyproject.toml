@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "distil-whisper-fastrtc"
-version = "0.1.0"
+version = "0.1.0.post1"
 description = "Distil-Whisper wrapper for FastRTC speech-to-text"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Codeblockz", email = "ryan.a.ellis.1@gmail.com"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -26,8 +26,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/distil-whisper-fastrtc"
-"Bug Tracker" = "https://github.com/yourusername/distil-whisper-fastrtc/issues"
+"Homepage" = "https://github.com/Codeblockz/distil-whisper-FastRTC"
+"Bug Tracker" = "https://github.com/Codeblockz/distil-whisper-fastrtc/issues"
 
 [project.optional-dependencies]
 dev = [

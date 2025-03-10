@@ -61,11 +61,10 @@ print(f"Transcription: {text}")
 ### Using with FastRTC
 
 ```python
-from fastrtc.backend.fastrtc.speech_to_text import STTModel
-from distil_whisper_fastrtc import DistilWhisperSTT
+from distil_whisper_fastrtc import get_stt_model
 
 # Create the model
-whisper_model = DistilWhisperSTT()
+whisper_model = get_stt_model()
 
 # Use within FastRTC applications
 # (Follow FastRTC documentation for integration details)
@@ -77,7 +76,7 @@ You can choose from different model sizes:
 
 - `distil-whisper/distil-small.en` (default, English only, fastest)
 - `distil-whisper/distil-medium.en` (English only, better quality)
-- `distil-whisper/distil-large-v2` (Multilingual, highest quality)
+- `distil-whisper/distil-large-v2` (English highest quality)
 - `distil-whisper/distil-large-v3` (Latest version, best quality)
 
 Example:
