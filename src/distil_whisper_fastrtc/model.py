@@ -34,6 +34,7 @@ class DistilWhisperSTT:
         "distil-whisper/distil-medium.en",
         "distil-whisper/distil-large-v2",
         "distil-whisper/distil-large-v3",
+        "openai/whisper-large-v3-turbo",
     ]
 
     def __init__(
@@ -97,7 +98,7 @@ class DistilWhisperSTT:
 
     def stt(self, audio: tuple[int, NDArray[np.int16 | np.float32]]) -> str:
         """
-        Transcribe audio to text using distil-whisper.
+        Transcribe audio to text using distil-whisper or whisper-large-v3-turbo.
 
         Args:
             audio: Tuple of (sample_rate, audio_data)
